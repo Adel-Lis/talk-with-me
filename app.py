@@ -78,7 +78,7 @@ class Me:
     def __init__(self):
         self.openai = OpenAI()
         self.name = "Adel Lis"
-        reader = PdfReader("me/linkedin.pdf")
+        reader = PdfReader("me/cv.pdf")
         self.linkedin = ""
         for page in reader.pages:
             text = page.extract_text()
@@ -109,15 +109,23 @@ If you don't know the answer to any question, use your record_unknown_question t
 If the user is engaging in discussion, try to steer them towards getting in touch via email; ask for their email and record it using your record_user_details tool. "
 
         system_prompt += f"\n\n## Summary:\n{self.summary}\n\n## LinkedIn Profile:\n{self.linkedin}\n\n"
-        system_prompt += f"With this context, please chat with the user, always staying in character as {self.name}."
+        system_prompt += f"With this context, please chat with the user, always staying in character as {self.name}. \
+Keep your answers concise, human, and conversational — like you're actually chatting, not writing a report. \
+Always respond in plain paragraphs only. Never use bullet points, headers, bold text, or any markdown formatting. \
+Write the way a real person would speak in a professional but friendly conversation."
         return system_prompt
     
     def chat(self, message, history):
-        messages = [{"role": "system", "content": self.system_prompt()}] + history + [{"role": "user", "content": message}]
+        original_message = message
+        
+        history.append({"role": "user", "content": original_message})
+        yield "", history  
+        
+        messages = [{"role": "system", "content": self.system_prompt()}] + history + [{"role": "user", "content": original_message}]
         done = False
         while not done:
             response = self.openai.chat.completions.create(model="gpt-4o-mini", messages=messages, tools=tools)
-            if response.choices[0].finish_reason=="tool_calls":
+            if response.choices[0].finish_reason == "tool_calls":
                 message = response.choices[0].message
                 tool_calls = message.tool_calls
                 results = self.handle_tool_call(tool_calls)
@@ -125,10 +133,48 @@ If the user is engaging in discussion, try to steer them towards getting in touc
                 messages.extend(results)
             else:
                 done = True
-        return response.choices[0].message.content
+
+        history.append({"role": "assistant", "content": response.choices[0].message.content})
+        yield "", history
     
+CSS = """
+.avatar img { border-radius: 50%; object-fit: cover }
+"""
 
 if __name__ == "__main__":
     me = Me()
-    gr.ChatInterface(me.chat, type="messages").launch()
+    
+    def ask_experience(history):
+        yield from me.chat("What's your experience?", history)
+
+    def ask_skills(history):
+        yield from me.chat("What are your skills?", history)
+
+    def ask_background(history):
+        yield from me.chat("What's your background?", history)
+
+    def ask_contact(history):
+        yield from me.chat("How can I contact you?", history)
+
+    with gr.Blocks() as demo:
+        gr.Markdown("# Adel Lis\n### AI Assistant — ask me anything about my background and experience")
+        gr.Markdown("---")
+
+        with gr.Row():
+            btn1 = gr.Button("💼 What's your experience?", size="sm")
+            btn2 = gr.Button("🛠️ What are your skills?", size="sm")
+            btn3 = gr.Button("🎓 What's your background?", size="sm")
+            btn4 = gr.Button("📬 How can I contact you?", size="sm")
+
+        chatbot = gr.Chatbot(avatar_images=(None, "me/picture_of_me.JPG"), show_label=False)
+        msg = gr.Textbox(placeholder="Ask me anything...")
+
+        msg.submit(me.chat, inputs=[msg, chatbot], outputs=[msg, chatbot])
+
+        btn1.click(ask_experience, inputs=[chatbot], outputs=[msg, chatbot])
+        btn2.click(ask_skills, inputs=[chatbot], outputs=[msg, chatbot])
+        btn3.click(ask_background, inputs=[chatbot], outputs=[msg, chatbot])
+        btn4.click(ask_contact, inputs=[chatbot], outputs=[msg, chatbot])
+
+    demo.launch(allowed_paths=["me/"], css=CSS)
     
