@@ -97,6 +97,12 @@ class Me:
             tool = globals().get(tool_name)
             result = tool(**arguments) if tool else {}
             results.append({"role": "tool","content": json.dumps(result),"tool_call_id": tool_call.id})
+
+            if tool_name == "record_user_details":
+                gr.Info("Thanks! The real Adel will be in touch with you soon :)")
+            elif tool_name == "record_unknown_question":
+                gr.Info("I've noted this question for the real Adel to answer later.")
+
         return results
     
     def system_prompt(self):
@@ -156,7 +162,7 @@ if __name__ == "__main__":
     def ask_contact(history):
         yield from me.chat("How can I contact you?", history)
 
-    with gr.Blocks() as demo:
+    with gr.Blocks(title="Adel Lis - AI Persona", analytics_enabled=False) as demo:
         gr.Markdown("# Adel Lis\n### AI Assistant — ask me anything about my background and experience")
         gr.Markdown("---")
 
@@ -167,14 +173,22 @@ if __name__ == "__main__":
             btn4 = gr.Button("📬 How can I contact you?", size="sm")
 
         chatbot = gr.Chatbot(avatar_images=(None, "me/picture_of_me.JPG"), show_label=False)
-        msg = gr.Textbox(placeholder="Ask me anything...")
+        msg = gr.Textbox(
+            placeholder="Ask me about my experience, skills, background...",
+            show_label=False,
+            submit_btn=True
+        )
+        gr.Markdown(
+            "---\n⚠️ *This is an AI assistant and may not be 100% accurate. "
+            "For anything important, please reach out to Adel directly.*",
+        )
 
-        msg.submit(me.chat, inputs=[msg, chatbot], outputs=[msg, chatbot])
+        msg.submit(me.chat, inputs=[msg, chatbot], outputs=[msg, chatbot], show_progress="full")
 
-        btn1.click(ask_experience, inputs=[chatbot], outputs=[msg, chatbot])
-        btn2.click(ask_skills, inputs=[chatbot], outputs=[msg, chatbot])
-        btn3.click(ask_background, inputs=[chatbot], outputs=[msg, chatbot])
-        btn4.click(ask_contact, inputs=[chatbot], outputs=[msg, chatbot])
+        btn1.click(ask_experience, inputs=[chatbot], outputs=[msg, chatbot], show_progress="full")
+        btn2.click(ask_skills, inputs=[chatbot], outputs=[msg, chatbot], show_progress="full")
+        btn3.click(ask_background, inputs=[chatbot], outputs=[msg, chatbot], show_progress="full")
+        btn4.click(ask_contact, inputs=[chatbot], outputs=[msg, chatbot], show_progress="full")
 
     demo.launch(allowed_paths=["me/"], css=CSS)
     
