@@ -25,4 +25,16 @@ jobs:
       run: python -c 'import huggingface_hub; huggingface_hub.login(token="${{ secrets.hf_token }}")'
 
     - name: Deploy to Spaces
-      run: gradio deploy --help
+      env:
+        HF_TOKEN: ${{ secrets.hf_token }}
+      run: |
+        python -c "
+        from huggingface_hub import HfApi
+        api = HfApi(token='${{ secrets.hf_token }}')
+        api.upload_folder(
+            folder_path='.',
+            repo_id='Adel13Lis/Talk_With_Me',
+            repo_type='space',
+            ignore_patterns=['.git', '.github', '.env', '.venv']
+        )
+        "
