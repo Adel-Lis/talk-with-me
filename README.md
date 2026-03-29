@@ -1,3 +1,10 @@
+---
+title: talk-with-me
+sdk: gradio
+app_file: app.py
+pinned: false
+---
+
 # Talk With Me — AI Personal Assistant
 
 ![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?logo=python&logoColor=white) ![Gradio](https://img.shields.io/badge/Gradio-4+-orange?logo=gradio) ![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-412991?logo=openai) ![HuggingFace](https://img.shields.io/badge/HuggingFace-Spaces-yellow?logo=huggingface) ![License](https://img.shields.io/badge/License-MIT-green)
