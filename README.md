@@ -6,7 +6,7 @@ This is my first Agentic Project, I have built a simple AI-powered personal Adel
 
 ## Demo
 
-[Live on HuggingFace Spaces](https://huggingface.co/spaces/Adel13Lis/Talk_With_Me)
+[Live on HuggingFace Spaces](https://huggingface.co/spaces/Adel13Lis/talk-with-me)
 
 ---
 
